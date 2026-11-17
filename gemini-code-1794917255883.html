@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Parceira IA v4.0 + Música - Neon Violet</title>
+  <style>
+    :root {
+      --bg-dark: #07050c;
+      --bg-panel: rgba(20, 12, 36, 0.85);
+      --neon-violet: #9d4edd;
+      --neon-glow: #c77dff;
+      --neon-deep: #5a189a;
+      --neon-listen: #ff007f;
+      --text-main: #f3e8ff;
+      --text-muted: #a78bfa;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(circle at 50% 15%, rgba(157, 78, 221, 0.18) 0%, transparent 55%),
+        linear-gradient(rgba(157, 78, 221, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(157, 78, 221, 0.03) 1px, transparent 1px);
+      background-size: 100% 100%, 30px 30px, 30px 30px;
+      color: var(--text-main);
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .container {
+      width: 92%;
+      max-width: 900px;
+      height: 92vh;
+      background: var(--bg-panel);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(199, 125, 255, 0.35);
+      border-radius: 22px;
+      box-shadow: 0 0 35px rgba(157, 78, 221, 0.22), inset 0 0 20px rgba(157, 78, 221, 0.06);
+      display: flex;
+      flex-direction: column;
+      padding: 22px;
+      position: relative;
+    }
+
+    /* Cabeçalho & Abas */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 14px;
+      border-bottom: 1px solid rgba(199, 125, 255, 0.2);
+    }
+
+    .nav-tabs {
+      display: flex;
+      gap: 8px;
+    }
+
+    .tab-btn {
+      background: rgba(90, 24, 154, 0.3);
+      border: 1px solid rgba(199, 125, 255, 0.25);
+      color: var(--text-muted);
+      padding: 6px 14px;
+      border-radius: 10px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tab-btn.active {
+      background: var(--neon-violet);
+      color: #fff;
+      border-color: var(--neon-glow);
+      box-shadow: 0 0 15px rgba(157, 78, 221, 0.4);
+    }
+
+    .header-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .clock {
+      font-variant-numeric: tabular-nums;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    .voice-toggle {
+      background: rgba(157, 78, 221, 0.2);
+      border: 1px solid rgba(199, 125, 255, 0.35);
+      color: var(--neon-glow);
+      padding: 5px 10px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .voice-toggle.muted {
+      opacity: 0.5;
+      border-color: rgba(167, 139, 250, 0.2);
+    }
+
+    .api-key-btn {
+      background: rgba(157, 78, 221, 0.2);
+      border: 1px solid rgba(199, 125, 255, 0.35);
+      color: var(--neon-glow);
+      padding: 5px 10px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+
+    .api-key-btn:hover {
+      background: var(--neon-violet);
+      color: #fff;
+    }
+
+    /* Painel de API Key Oculto */
+    .api-panel {
+      display: none;
+      gap: 8px;
+      padding: 10px;
+      background: rgba(10, 6, 18, 0.9);
+      border: 1px solid rgba(199, 125, 255, 0.3);
+      border-radius: 10px;
+      margin-top: 10px;
+    }
+    .api-panel.open { display: flex; }
+    .api-panel input {
+      flex: 1;
+      background: rgba(20, 12, 36, 0.8);
+      border: 1px solid rgba(199, 125, 255, 0.3);
+      padding: 6px 10px;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 0.85rem;
+    }
+
+    /* Views (Abas) */
+    .view-content {
+      display: none;
+      flex: 1;
+      flex-direction: column;
+      margin-top: 16px;
+      overflow: hidden;
+    }
+
+    .view-content.active {
+      display: flex;
+    }
+
+    /* --- ABA DE CHAT --- */
+    .orb-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 10px 0 14px 0;
+      gap: 6px;
+    }
+
+    .orb {
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, var(--neon-glow), var(--neon-deep));
+      box-shadow: 0 0 22px var(--neon-violet), 0 0 45px rgba(157, 78, 221, 0.4);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .orb.thinking {
+      animation: orbThinking 0.7s infinite alternate;
+    }
+
+    .orb.listening {
+      background: radial-gradient(circle at 30% 30%, #ff75b5, var(--neon-listen));
+      box-shadow: 0 0 35px var(--neon-listen), 0 0 70px rgba(255, 0, 127, 0.6);
+      animation: orbListen 0.5s infinite alternate;
+    }
+
+    .orb-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      letter-spacing: 0.5px;
+    }
+
+    .quick-actions {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .chip {
+      background: rgba(90, 24, 154, 0.3);
+      border: 1px solid rgba(199, 125, 255, 0.25);
+      color: var(--text-main);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .chip:hover {
+      background: var(--neon-violet);
+      box-shadow: 0 0 10px var(--neon-glow);
+    }
+
+    .chat-box {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      padding-right: 8px;
+      margin-bottom: 16px;
+    }
+
+    .chat-box::-webkit-scrollbar { width: 6px; }
+    .chat-box::-webkit-scrollbar-thumb { background: var(--neon-deep); border-radius: 4px; }
+
+    .msg {
+      max-width: 82%;
+      padding: 13px 17px;
+      border-radius: 16px;
+      font-size: 0.96rem;
+      line-height: 1.55;
+      animation: fadeIn 0.25s ease;
+      word-wrap: break-word;
+    }
+
+    .msg.system {
+      align-self: flex-start;
+      background: rgba(90, 24, 154, 0.25);
+      border: 1px solid rgba(199, 125, 255, 0.25);
+      color: var(--text-main);
+    }
+
+    .msg.user {
+      align-self: flex-end;
+      background: linear-gradient(135deg, var(--neon-deep), var(--neon-violet));
+      box-shadow: 0 4px 15px rgba(157, 78, 221, 0.3);
+      color: #fff;
+    }
+
+    .msg a { color: var(--neon-glow); text-decoration: underline; }
+    .msg pre { background: rgba(7, 5, 12, 0.9); border: 1px solid rgba(199, 125, 255, 0.25); padding: 10px; border-radius: 8px; overflow-x: auto; margin: 8px 0; font-family: 'Consolas', monospace; font-size: 0.88rem; color: #e0aaff; }
+    .msg code { background: rgba(157, 78, 221, 0.2); padding: 2px 5px; border-radius: 4px; font-family: 'Consolas', monospace; font-size: 0.9em; }
+
+    .input-area {
+      display: flex;
+      gap: 10px;
+    }
+
+    input[type="text"], input[type="password"] {
+      flex: 1;
+      background: rgba(10, 6, 18, 0.85);
+      border: 1px solid rgba(199, 125, 255, 0.3);
+      border-radius: 12px;
+      padding: 14px 16px;
+      color: var(--text-main);
+      font-size: 1rem;
+      outline: none;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+
+    input:focus {
+      border-color: var(--neon-glow);
+      box-shadow: 0 0 15px rgba(199, 125, 255, 0.25);
+    }
+
+    .mic-btn {
+      background: rgba(157, 78, 221, 0.2);
+      border: 1px solid rgba(199, 125, 255, 0.4);
+      color: var(--neon-glow);
+      border-radius: 12px;
+      width: 52px;
+      font-size: 1.2rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+
+    .mic-btn.recording {
+      background: var(--neon-listen);
+      border-color: #ff75b5;
+      color: #fff;
+      box-shadow: 0 0 20px var(--neon-listen);
+      animation: pulse 1s infinite;
+    }
+
+    button[type="submit"] {
+      background: var(--neon-violet);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      padding: 0 22px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 0 15px rgba(157, 78, 221, 0.4);
+      transition: all 0.2s ease;
+    }
+
+    button[type="submit"]:hover {
+      background: var(--neon-glow);
+      color: #07050c;
+      box-shadow: 0 0 25px var(--neon-glow);
+    }
+
+    /* --- ABA DE MÚSICA --- */
+    .music-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      height: 100%;
+    }
+
+    .music-header {
+      display: flex;
+      gap: 10px;
+    }
+
+    .music-presets {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .preset-chip {
+      background: rgba(157, 78, 221, 0.18);
+      border: 1px solid rgba(199, 125, 255, 0.3);
+      color: var(--text-main);
+      padding: 8px 14px;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .preset-chip:hover {
+      background: var(--neon-violet);
+      box-shadow: 0 0 12px var(--neon-glow);
+    }
+
+    .player-frame-wrapper {
+      flex: 1;
+      background: rgba(7, 5, 12, 0.9);
+      border: 1px solid rgba(199, 125, 255, 0.3);
+      border-radius: 16px;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+    }
+
+    .player-frame-wrapper iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    .player-placeholder {
+      position: absolute;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      padding: 20px;
+    }
+
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+    @keyframes orbThinking {
+      from { transform: scale(0.95); box-shadow: 0 0 20px var(--neon-violet); }
+      to { transform: scale(1.18); box-shadow: 0 0 45px var(--neon-glow), 0 0 85px var(--neon-violet); }
+    }
+    @keyframes orbListen {
+      from { transform: scale(1); }
+      to { transform: scale(1.22); }
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="header">
+      <div class="nav-tabs">
+        <button class="tab-btn active" onclick="switchTab('chat')">💬 Chat & IA</button>
+        <button class="tab-btn" onclick="switchTab('music')">🎵 Música</button>
+      </div>
+      <div class="header-info">
+        <button class="api-key-btn" id="apiKeyToggle">🔑 API Key</button>
+        <button class="voice-toggle" id="voiceToggle" title="Ativar ou mutar a voz">🔊 Voz Ativa</button>
+        <div class="clock" id="clock">00:00:00</div>
+      </div>
+    </div>
+
+    <!-- Painel para colar API Key do Gemini mais recente -->
+    <div class="api-panel" id="apiPanel">
+      <input type="password" id="apiKeyInput" placeholder="Cole sua Gemini API Key (AIza...)">
+      <button type="submit" id="saveApiKey" style="padding: 6px 14px; font-size: 0.85rem;">Salvar</button>
+    </div>
+
+    <!-- VIEW 1: CHAT -->
+    <div class="view-content active" id="chatView">
+      <div class="orb-wrapper">
+        <div class="orb" id="orb" title="Clique para falar"></div>
+        <div class="orb-label" id="orbLabel">Pronta (Gemini 4 Hydrogen)</div>
+      </div>
+
+      <div class="quick-actions">
+        <button class="chip" onclick="sendQuickCommand('Abrir YouTube')">▶️ YouTube</button>
+        <button class="chip" onclick="sendQuickCommand('Abrir GitHub')">🐙 GitHub</button>
+        <button class="chip" onclick="sendQuickCommand('Que horas são?')">🕒 Ver Hora</button>
+        <button class="chip" onclick="sendQuickCommand('Limpar chat')">🧹 Limpar</button>
+      </div>
+
+      <div class="chat-box" id="chatBox">
+        <div class="msg system">E aí! Atualizei meu cérebro para a versão mais recente do Gemini (<strong>gemini-4-hydrogen</strong>) com suporte total a raciocínio avançado. Configure sua chave no botão 🔑 acima (ou use os comandos locais de voz, música e abertura de sites de graça!).</div>
+      </div>
+
+      <form class="input-area" id="commandForm">
+        <button type="button" class="mic-btn" id="micBtn" title="Falar">🎤</button>
+        <input type="text" id="commandInput" placeholder="Digite uma mensagem ou 'abrir youtube'..." autocomplete="off">
+        <button type="submit">Enviar</button>
+      </form>
+    </div>
+
+    <!-- VIEW 2: MÚSICA -->
+    <div class="view-content" id="musicView">
+      <div class="music-container">
+        <div class="music-header">
+          <input type="text" id="musicSearchInput" placeholder="Busque uma música ou playlist no YouTube Music..." autocomplete="off">
+          <button type="button" onclick="searchMusic()" style="padding: 0 20px; background: var(--neon-violet); border: none; border-radius: 12px; color: #fff; font-weight: 600; cursor: pointer;">Buscar</button>
+        </div>
+
+        <div class="music-presets">
+          <button class="preset-chip" onclick="playPreset('Lo-Fi Beats to Code')">☕ Lo-Fi Code</button>
+          <button class="preset-chip" onclick="playPreset('Synthwave Cyberpunk Radio')">🌆 Synthwave</button>
+          <button class="preset-chip" onclick="playPreset('Phonk Music Playlist')">🔥 Phonk</button>
+          <button class="preset-chip" onclick="playPreset('Classical Piano Relaxing')">🎹 Piano Relax</button>
+        </div>
+
+        <div class="player-frame-wrapper" id="playerWrapper">
+          <div class="player-placeholder" id="playerPlaceholder">
+            Selecione uma categoria acima ou digite o nome de uma música/artista para tocar aqui!
+          </div>
+          <iframe id="youtubePlayer" src="" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const chatBox = document.getElementById('chatBox');
+    const form = document.getElementById('commandForm');
+    const input = document.getElementById('commandInput');
+    const orb = document.getElementById('orb');
+    const orbLabel = document.getElementById('orbLabel');
+    const clockEl = document.getElementById('clock');
+    const micBtn = document.getElementById('micBtn');
+    const voiceToggle = document.getElementById('voiceToggle');
+    const apiKeyToggle = document.getElementById('apiKeyToggle');
+    const apiPanel = document.getElementById('apiPanel');
+    const apiKeyInput = document.getElementById('apiKeyInput');
+    const saveApiKey = document.getElementById('saveApiKey');
+
+    let voiceEnabled = true;
+    apiKeyInput.value = localStorage.getItem('gemini_v4_key') || '';
+
+    apiKeyToggle.addEventListener('click', () => {
+      apiPanel.classList.toggle('open');
+    });
+
+    saveApiKey.addEventListener('click', () => {
+      localStorage.setItem('gemini_v4_key', apiKeyInput.value.trim());
+      apiPanel.classList.remove('open');
+      addMessage('Chave de API salva com sucesso!', 'system');
+    });
+
+    // Navegação de Abas
+    window.switchTab = function(tabName) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.view-content').forEach(view => view.classList.remove('active'));
+
+      if (tabName === 'chat') {
+        document.querySelectorAll('.tab-btn')[0].classList.add('active');
+        document.getElementById('chatView').classList.add('active');
+      } else {
+        document.querySelectorAll('.tab-btn')[1].classList.add('active');
+        document.getElementById('musicView').classList.add('active');
+      }
+    };
+
+    // Player de Música
+    window.playPreset = function(query) {
+      const placeholder = document.getElementById('playerPlaceholder');
+      const player = document.getElementById('youtubePlayer');
+      placeholder.style.display = 'none';
+      player.src = `https://www.youtube.com/embed?listType=search&list=${encodeURIComponent(query)}&autoplay=1`;
+    };
+
+    window.searchMusic = function() {
+      const query = document.getElementById('musicSearchInput').value.trim();
+      if (!query) return;
+      playPreset(query);
+    };
+
+    document.getElementById('musicSearchInput').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); searchMusic(); }
+    });
+
+    // Dicionário de sites
+    const KNOWN_SITES = {
+      'youtube': 'https://www.youtube.com',
+      'github': 'https://github.com',
+      'google': 'https://www.google.com',
+      'instagram': 'https://www.instagram.com',
+      'whatsapp': 'https://web.whatsapp.com',
+      'gmail': 'https://mail.google.com',
+      'drive': 'https://drive.google.com',
+      'spotify': 'https://open.spotify.com',
+      'chatgpt': 'https://chatgpt.com',
+      'gemini': 'https://gemini.google.com',
+      'ai studio': 'https://aistudio.google.com',
+      'discord': 'https://discord.com/app'
+    };
+
+    function tryOpenWebsite(rawText) {
+      const lower = rawText.toLowerCase().trim();
+      const openMatch = lower.match(/^(?:abrir|abre|acessar|acessa|ir para|abra)\s+(?:o\s+|a\s+|site\s+|do\s+|da\s+)*(.+)/i);
+      if (!openMatch) return { opened: false };
+
+      let target = openMatch[1].replace(/[.!?]+$/, '').trim();
+      if (KNOWN_SITES[target]) {
+        const url = KNOWN_SITES[target];
+        window.open(url, '_blank');
+        return { opened: true, label: target.toUpperCase(), url };
+      }
+      if (/^[a-z0-9-]+(\.[a-z0-9-]+)+(\/.*)?$/i.test(target.replace(/\s+/g, ''))) {
+        const cleanDomain = target.replace(/\s+/g
